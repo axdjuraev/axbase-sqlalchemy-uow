@@ -9,7 +9,8 @@ Base = declarative_base()
 
 
 class AbstractBaseModel(ABC, Base):
-    _ids: Union[List[Any], None] = None
+    _ids: List[Any]
+    _ids_all: Union[List[Any], None]
     __tablename: Union[str, None] = None
 
     @classmethod
@@ -23,11 +24,16 @@ class AbstractBaseModel(ABC, Base):
 
     @classmethod
     @property
-    def ids(cls) -> Union[List[Any], None]:
+    def ids(cls) -> List[Any]:
         if cls._ids is None:
-            cls._ids = None
+            pass
 
         return cls._ids
+
+    @classmethod
+    @property
+    def ids_all(cls) -> Union[List[Any], None]:
+        return cls._ids_all
 
 
 class BaseTableAt(AbstractBaseModel):
