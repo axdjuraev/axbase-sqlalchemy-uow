@@ -2,6 +2,8 @@ import re
 from abc import ABC
 from typing import Any, List, Union
 
+import sqlalchemy as sa
+
 
 class AbstractBaseModel(ABC):
     _ids: Union[List[Any], None] = None
@@ -23,3 +25,10 @@ class AbstractBaseModel(ABC):
             cls._ids = None
 
         return cls._ids
+
+
+class BaseTableAt(AbstractBaseModel):
+    __abstract__ = True
+
+    created_at = sa.Column(sa.DateTime(timezone=True), server_default=sa.func.now())
+    updated_at = sa.Column(sa.DateTime(timezone=True), onupdate=sa.func.now())
