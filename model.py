@@ -3,9 +3,12 @@ from abc import ABC
 from typing import Any, List, Union
 
 import sqlalchemy as sa
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
 
 
-class AbstractBaseModel(ABC):
+class AbstractBaseModel(ABC, Base):
     _ids: Union[List[Any], None] = None
     __tablename: Union[str, None] = None
 
