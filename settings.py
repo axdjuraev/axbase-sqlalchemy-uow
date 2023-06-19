@@ -2,7 +2,7 @@ from pydantic import BaseSettings
 from sqlalchemy.engine.url import URL
 
 
-class DBSettings(BaseSettings):
+class Settings(BaseSettings):
     DB_DRIVERNAME: str = "postgresql+asyncpg"
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
