@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import Any, Generic, List, Type, TypeVar, Union
 
 from pydantic import BaseModel
 from sqlalchemy import and_, delete, select, update
@@ -6,11 +6,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from axabc.db import AbstractAsyncRepository
 
-from .model import AbstractBaseModel, BaseTableAt
+from .model import BaseTableAt
+
+TDBModel = TypeVar('TDBModel', bound=BaseTableAt)
+TIModel = TypeVar('TIModel', bound=BaseModel)
+TOModel = TypeVar('TOModel', bound=BaseModel)
 
 
-class BaseRepository(AbstractAsyncRepository):
-    DBModel: AbstractBaseModel = BaseTableAt()
+class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel]):
+    DBModel: TDBModel = BaseTableAt
     IModel = BaseModel
     OModel = BaseModel
 
@@ -19,11 +23,16 @@ class BaseRepository(AbstractAsyncRepository):
 
     def __get_filters(
         self,
-        ids: Union[tuple[Any], List[Any], None, IModel, OModel],
-        columns: Union[List[Any], tuple[Any], None] = DBModel.ids,
+        ids: Union[tuple[Any], List[Any], None, 'IModel', 'OModel'],
+        columns: Union[List[Any], tuple[Any], None] = None,
     ) -> tuple[Any]:
-        if ids is None or columns is None:
+        if ids is None:
             return (True,)
+
+        if columns is None:
+            if self.DBModel.ids is None:
+                return (True, )
+            columns = self.DBModel
 
         if type(ids) not in [tuple, list]:
             ids = self.__get_obj_ids(self.IModel.from_orm(ids), columns)
@@ -33,21 +42,24 @@ class BaseRepository(AbstractAsyncRepository):
         if self.DBModel is None:
             raise NotImplementedError
 
-        for colum, value in zip(self.DBModel.ids, ids):
+        for colum, value in zip(columns, ids):
             filters.append(colum == value)
 
         return tuple(filters)
 
-    def __get_obj_ids(self, obj: IModel, columns=DBModel.ids) -> tuple[Any]:
+    def __get_obj_ids(self, obj: 'IModel', columns) -> tuple[Any]:
         ids = []
         fields: dict = obj.__class__.__fields__
+
+        if not columns:
+            return tuple(ids)
 
         for column in columns:
             ids.append(fields.get(column.__name__))
 
         return tuple(ids)
 
-    async def add(self, obj: Union[IModel, OModel]) -> IModel:
+    async def add(self, obj: Union['IModel', 'OModel']) -> OModel:
         if not self.DBModel:
             raise NotImplementedError
 
@@ -58,7 +70,7 @@ class BaseRepository(AbstractAsyncRepository):
         self.session.add(obj)
         await self.session.commit()
 
-        return self.IModel.from_orm(obj)
+        return self.OModel.from_orm(obj)
 
     async def get(self, *ids: Any) -> Any:
         filters = self.__get_filters(ids)
@@ -81,7 +93,10 @@ class BaseRepository(AbstractAsyncRepository):
         if obj:
             return self.OModel.from_orm(obj)
 
-    async def update(self, obj: IModel) -> IModel:
+    async def update(self, obj: Union['IModel', 'OModel']) -> 'IModel':
+        if type(obj) is self.OModel:
+            obj = self.IModel.from_orm(obj)
+
         filters = self.__get_filters(obj)
         (
             await self.session.execute(
@@ -92,9 +107,9 @@ class BaseRepository(AbstractAsyncRepository):
                 ),
             )
         )
-        return obj
+        return self.IModel.from_orm(obj)
 
-    async def delete(self, obj: IModel) -> None:
+    async def delete(self, obj: 'IModel') -> None:
         filters = self.__get_filters(obj)
         await self.session.execute(delete(self.DBModel).where(*filters))
 
