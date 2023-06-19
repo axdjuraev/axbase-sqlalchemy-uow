@@ -30,7 +30,7 @@ class AbstractBaseModel(Base, metaclass=Meta):
 
     @classmethod
     @property
-    def ids(cls) -> List[Any]:
+    def ids(cls) -> Union[List[Any], tuple[Any]]:
         if cls._ids is None:
             pass
 
@@ -38,7 +38,7 @@ class AbstractBaseModel(Base, metaclass=Meta):
 
     @classmethod
     @property
-    def ids_all(cls) -> Union[List[Any], None]:
+    def ids_all(cls) -> Union[List[Any], tuple[Any], None]:
         return cls._ids_all
 
 
