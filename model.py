@@ -15,8 +15,8 @@ class Meta(ABC, type(Base)):
 class AbstractBaseModel(Base, metaclass=Meta):
     __abstract__ = True
 
-    _ids: List[Any]
-    _ids_all: Union[List[Any], None]
+    _ids: Union[List[Any], None] = None
+    _ids_all: Union[List[Any], None] = None
     __tablename: Union[str, None] = None
 
     @classmethod
@@ -30,9 +30,9 @@ class AbstractBaseModel(Base, metaclass=Meta):
 
     @classmethod
     @property
-    def ids(cls) -> Union[List[Any], tuple[Any]]:
+    def ids(cls) -> Union[List[Any], tuple[Any], None]:
         if cls._ids is None:
-            pass
+            print("1")
 
         return cls._ids
 
