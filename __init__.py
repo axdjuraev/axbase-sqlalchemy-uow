@@ -1,11 +1,11 @@
 from .model import AbstractBaseModel, BaseTableAt
 from .repository import BaseRepository
-from .uow import BaseUOW, BaseUOWFactory
+from .uow import UOW, UOWFactory
 
 __all__ = [
     "AbstractBaseModel",
     "BaseTableAt",
     "BaseRepository",
-    "BaseUOWFactory",
-    "BaseUOW",
+    "UOWFactory",
+    "UOW",
 ]
