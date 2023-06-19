@@ -8,9 +8,9 @@ from axabc.db import AbstractAsyncRepository
 
 from .model import BaseTableAt
 
-TDBModel = TypeVar('TDBModel', bound=BaseTableAt)
-TIModel = TypeVar('TIModel', bound=BaseModel)
-TOModel = TypeVar('TOModel', bound=BaseModel)
+TDBModel = TypeVar("TDBModel", bound=BaseTableAt)
+TIModel = TypeVar("TIModel", bound=BaseModel)
+TOModel = TypeVar("TOModel", bound=BaseModel)
 
 
 class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel]):
@@ -23,7 +23,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
     def __get_filters(
         self,
-        ids: Union[tuple[Any], List[Any], None, 'IModel', 'OModel'],
+        ids: Union[tuple[Any], List[Any], None, "IModel", "OModel"],
         columns: Union[List[Any], tuple[Any], None] = None,
     ) -> tuple[Any]:
         if ids is None:
@@ -31,7 +31,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
         if columns is None:
             if self.DBModel.ids is None:
-                return (True, )
+                return (True,)
             columns = self.DBModel
 
         if type(ids) not in [tuple, list]:
@@ -47,7 +47,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
         return tuple(filters)
 
-    def __get_obj_ids(self, obj: 'IModel', columns) -> tuple[Any]:
+    def __get_obj_ids(self, obj: "IModel", columns) -> tuple[Any]:
         ids = []
         fields: dict = obj.__class__.__fields__
 
@@ -59,7 +59,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
         return tuple(ids)
 
-    async def add(self, obj: Union['IModel', 'OModel']) -> OModel:
+    async def add(self, obj: Union["IModel", "OModel"]) -> OModel:
         if not self.DBModel:
             raise NotImplementedError
 
@@ -93,7 +93,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         if obj:
             return self.OModel.from_orm(obj)
 
-    async def update(self, obj: Union['IModel', 'OModel']) -> 'IModel':
+    async def update(self, obj: Union["IModel", "OModel"]) -> "IModel":
         if type(obj) is self.OModel:
             obj = self.IModel.from_orm(obj)
 
@@ -109,7 +109,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         )
         return self.IModel.from_orm(obj)
 
-    async def delete(self, obj: 'IModel') -> None:
+    async def delete(self, obj: "IModel") -> None:
         filters = self.__get_filters(obj)
         await self.session.execute(delete(self.DBModel).where(*filters))
 
