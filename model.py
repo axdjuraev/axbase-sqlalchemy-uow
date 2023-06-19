@@ -8,7 +8,13 @@ from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
 
-class AbstractBaseModel(ABC, Base):
+class Meta(ABC, type(Base)):
+    ...
+
+
+class AbstractBaseModel(Base, metaclass=Meta):
+    __abstract__ = True
+
     _ids: List[Any]
     _ids_all: Union[List[Any], None]
     __tablename: Union[str, None] = None
