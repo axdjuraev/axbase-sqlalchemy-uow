@@ -1,14 +1,9 @@
 from typing import Generic, Type, TypeVar
 
+from axabc.db import (AbstractAsyncRepository, AbstractUOW, AbstractUOWFactory,
+                      BaseRepoCollector)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
-
-from axabc.db import (
-    AbstractAsyncRepository,
-    AbstractUOW,
-    AbstractUOWFactory,
-    BaseRepoCollector,
-)
 
 TRepoCollector = TypeVar("TRepoCollector", bound=BaseRepoCollector)
 

@@ -32,7 +32,12 @@ class AbstractBaseModel(Base, metaclass=Meta):
     @property
     def ids(cls) -> Union[List[Any], tuple[Any], None]:
         if cls._ids is None:
-            print("1")
+            cls._ids = []
+
+            for column in cls.__table__.constraints:
+                if type(column) is sa.PrimaryKeyConstraint:
+                    cls._ids.append(column)
+
 
         return cls._ids
 

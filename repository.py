@@ -21,6 +21,19 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
+    async def add(self, obj: Union["IModel", "OModel"]) -> OModel:
+        if not self.DBModel:
+            raise NotImplementedError
+
+        if type(obj) is self.OModel:
+            obj = self.IModel.from_orm(obj)
+
+        obj = self.DBModel(**obj.dict())
+        self.session.add(obj)
+        await self.session.commit()
+
+        return self.OModel.from_orm(obj)
+
     def __get_filters(
         self,
         ids: Union[tuple[Any], List[Any], None, "IModel", "OModel"],
@@ -32,7 +45,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         if columns is None:
             if self.DBModel.ids is None:
                 return (True,)
-            columns = self.DBModel
+            columns = self.DBModel.__table__.columns.values()
 
         if type(ids) not in [tuple, list]:
             ids = self.__get_obj_ids(self.IModel.from_orm(ids), columns)
@@ -42,8 +55,9 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         if self.DBModel is None:
             raise NotImplementedError
 
-        for colum, value in zip(columns, ids):
-            filters.append(colum == value)
+        if columns is not None:
+            for colum, value in zip(columns, ids):
+                filters.append(colum == value)
 
         return tuple(filters)
 
@@ -59,18 +73,6 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
         return tuple(ids)
 
-    async def add(self, obj: Union["IModel", "OModel"]) -> OModel:
-        if not self.DBModel:
-            raise NotImplementedError
-
-        if type(obj) is self.OModel:
-            obj = self.IModel.from_orm(obj)
-
-        obj = self.DBModel(**obj.dict())
-        self.session.add(obj)
-        await self.session.commit()
-
-        return self.OModel.from_orm(obj)
 
     async def get(self, *ids: Any) -> Any:
         filters = self.__get_filters(ids)
