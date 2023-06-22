@@ -45,7 +45,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         if columns is None:
             if self.DBModel.ids is None:
                 return (True,)
-            columns = self.DBModel.__table__.columns.values()
+            columns = self.DBModel.ids
 
         if type(ids) not in [tuple, list]:
             ids = self.__get_obj_ids(self.IModel.from_orm(ids), columns)

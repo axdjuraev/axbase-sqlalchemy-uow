@@ -34,10 +34,10 @@ class AbstractBaseModel(Base, metaclass=Meta):
         if cls._ids is None:
             cls._ids = []
 
-            for column in cls.__table__.constraints:
-                if type(column) is sa.PrimaryKeyConstraint:
-                    cls._ids.append(column)
-
+            for constraint in cls.__table__.constraints:
+                if type(constraint) is sa.PrimaryKeyConstraint:
+                    for column in constraint.columns:
+                        cls._ids.append(column)
 
         return cls._ids
 
