@@ -1,9 +1,10 @@
 from typing import Generic, Type, TypeVar
 
-from axabc.db import (AbstractAsyncRepository, AbstractUOW, AbstractUOWFactory,
-                      BaseRepoCollector)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
+
+from axabc.db import (AbstractAsyncRepository, AbstractUOW, AbstractUOWFactory,
+                      BaseRepoCollector)
 
 TRepoCollector = TypeVar("TRepoCollector", bound=BaseRepoCollector)
 
@@ -15,12 +16,15 @@ class UOW(AbstractUOW, Generic[TRepoCollector]):
         self.is_session_closed: bool = False
 
     async def __aenter__(self):
-        print("BaseUOW __aenter__")
         await self.session.begin()
         return self
 
     async def __aexit__(self, *args, **kwargs):
-        print("BaseUOW __aexit__")
+        if any(args) or kwargs:
+            await self.session.rollback()
+        else:
+            await self.session.commit()
+
         await self.dispose()
 
     async def save(self):
