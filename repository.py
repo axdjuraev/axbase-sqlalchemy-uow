@@ -63,13 +63,12 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
     def __get_obj_ids(self, obj: "IModel", columns) -> tuple[Any]:
         ids = []
-        fields: dict = obj.__class__.__fields__
 
         if not columns:
             return tuple(ids)
 
         for column in columns:
-            ids.append(fields.get(column.__name__))
+            ids.append(getattr(obj, column.name))
 
         return tuple(ids)
 
