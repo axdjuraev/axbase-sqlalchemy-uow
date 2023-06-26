@@ -1,7 +1,11 @@
 from setuptools import find_packages, setup
 
-VERSION = "0.0.1"
 DESCIPTION = "SQLAlchemy-based library that allows you to implement a uow pattern based on this library"
+
+
+with open("VERSION", "r") as f:
+    VERSION = f.read().strip()
+
 
 with open("requirements.txt", "r") as requirements_file:
     REQUIREMENTS = requirements_file.readlines()
