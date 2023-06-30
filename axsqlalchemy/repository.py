@@ -72,7 +72,6 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
         return tuple(ids)
 
-
     async def get(self, *ids: Any) -> Any:
         filters = self.__get_filters(ids)
 
@@ -84,7 +83,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
                 await self.session.execute(
                     select(self.DBModel)
                     .where(and_(*filters))
-                    .order_by(self.DBModel.created_at),
+                    .order_by(self.DBModel.created_at.desc()),
                 )
             )
             .scalars()
