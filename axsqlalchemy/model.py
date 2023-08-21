@@ -58,3 +58,7 @@ class BaseTableStatus(AbstractBaseModel):
     __abstract__ = True
 
     is_active = sa.Column(sa.Boolean, nullable=False, default=True)
+
+
+class BaseTable(BaseTableAt, BaseTableStatus):
+    __abstract__ = True
