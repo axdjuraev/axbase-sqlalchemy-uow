@@ -1,9 +1,12 @@
 import re
+import uuid
 from abc import ABC
 from typing import Any, List, Union
 
 import sqlalchemy as sa
 from sqlalchemy.orm import declarative_base
+from sqlalchemy.dialects.postgresql import UUID
+
 
 Base = declarative_base()
 
@@ -62,3 +65,15 @@ class BaseTableStatus(AbstractBaseModel):
 
 class BaseTable(BaseTableAt, BaseTableStatus):
     __abstract__ = True
+
+
+class BaseTableUUID(BaseTable):
+    __abstract__ = True
+
+    id = sa.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
+
+class BaseTableIdInt(BaseTable):
+    __abstract__ = True
+
+    id = sa.Column(sa.Integer, primary_key=True)
