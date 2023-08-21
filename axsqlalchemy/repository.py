@@ -14,14 +14,15 @@ TOModel = TypeVar("TOModel", bound=BaseModel)
 
 
 class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel]):
-    DBModel: TDBModel = BaseTableAt
-    IModel = BaseModel
-    OModel = BaseModel
-
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def add(self, obj: Union["IModel", "OModel"]) -> OModel:
+    def __init_subclass__(cls, DBModel: Type[TDBModel], IModel: Type[TIModel], OModel: Type[TOModel]) -> None:
+        cls.DBModel = DBModel
+        cls.IModel = TOModel
+        cls.OModel = OModel
+
+    async def add(self, obj: TDBModel) -> TOModel:
         if not self.DBModel:
             raise NotImplementedError
 
@@ -36,7 +37,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
     def __get_filters(
         self,
-        ids: Union[tuple[Any], List[Any], None, "IModel", "OModel"],
+        ids: Union[tuple[Any], List[Any], None, TIModel, TOModel],
         columns: Union[List[Any], tuple[Any], None] = None,
     ) -> tuple[Any]:
         if ids is None:
@@ -61,7 +62,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
         return tuple(filters)
 
-    def __get_obj_ids(self, obj: "IModel", columns) -> tuple[Any]:
+    def __get_obj_ids(self, obj: TIModel, columns) -> tuple[Any]:
         ids = []
 
         if not columns:
@@ -93,7 +94,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         if obj:
             return self.OModel.from_orm(obj)
 
-    async def update(self, obj: Union["IModel", "OModel"]) -> "IModel":
+    async def update(self, obj: Union[TIModel, TOModel]) -> TIModel:
         if type(obj) is self.OModel:
             obj = self.IModel.from_orm(obj)
 
@@ -109,7 +110,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         )
         return self.IModel.from_orm(obj)
 
-    async def delete(self, obj: "IModel") -> None:
+    async def delete(self, obj: TIModel) -> None:
         filters = self.__get_filters(obj)
         await self.session.execute(delete(self.DBModel).where(*filters))
 
