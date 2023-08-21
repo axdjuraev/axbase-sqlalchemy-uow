@@ -52,3 +52,9 @@ class BaseTableAt(AbstractBaseModel):
 
     created_at = sa.Column(sa.DateTime(timezone=True), server_default=sa.func.now())
     updated_at = sa.Column(sa.DateTime(timezone=True), onupdate=sa.func.now())
+
+
+class BaseTableStatus(AbstractBaseModel):
+    __abstract__ = True
+
+    is_active = sa.Column(sa.Boolean, nullable=False, default=True)
