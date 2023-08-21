@@ -73,7 +73,7 @@ class BaseTableUUID(BaseTable):
     id = sa.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
 
-class BaseTableIdInt(BaseTable):
+class BaseTableInt(BaseTable):
     __abstract__ = True
 
     id = sa.Column(sa.Integer, primary_key=True)
