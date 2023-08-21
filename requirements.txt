@@ -1,2 +1,3 @@
+uuid>=1.30
 axabc>=0.0.1
 SQLAlchemy==2.0.3
