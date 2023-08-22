@@ -17,15 +17,9 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
     Schema: Type[TIModel]
     OSchema: Type[TOModel]
 
-    def __init_subclass__(
-        cls,
-        model: Type[TDBModel],
-        schema: Type[TIModel],
-        oschema: Union[TOModel],
-    ) -> None:
-        cls.Model = model
-        cls.Schema = schema
-        cls.OSchema = oschema if oschema is not None else schema
+    def __init_subclass__(cls) -> None:
+        types = cls.__orig_bases__[0].__args__
+        cls.Model, cls.Schema, cls.OSchema = types
 
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
