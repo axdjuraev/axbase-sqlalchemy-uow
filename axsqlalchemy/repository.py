@@ -24,7 +24,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def add(self, obj: TDBModel) -> TOModel:
+    async def add(self, obj: TIModel) -> TOModel:
         if not self.Model:
             raise NotImplementedError
 
