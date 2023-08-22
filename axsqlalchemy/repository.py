@@ -3,10 +3,9 @@ from typing import Any, Generic, List, Type, TypeVar, Union
 from pydantic import BaseModel
 from sqlalchemy import and_, delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from axabc.db import AbstractAsyncRepository
-
 from .model import BaseTableAt
+
 
 TDBModel = TypeVar("TDBModel", bound=BaseTableAt)
 TIModel = TypeVar("TIModel", bound=BaseModel)
@@ -17,10 +16,15 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    def __init_subclass__(cls, model: Type[TDBModel], schema: Type[TIModel], oschema: Type[TOModel]) -> None:
+    def __init_subclass__(
+        cls,
+        model: Type[TDBModel],
+        schema: Type[TIModel],
+        oschema: Union[Type[TOModel], None] = None
+    ) -> None:
         cls.Model = model
         cls.Schema = schema
-        cls.OSchema = oschema
+        cls.OSchema = oschema if oschema is not None else schema
 
     async def add(self, obj: TDBModel) -> TOModel:
         if not self.Model:
