@@ -17,23 +17,23 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    def __init_subclass__(cls, DBModel: Type[TDBModel], IModel: Type[TIModel], OModel: Type[TOModel]) -> None:
-        cls.DBModel = DBModel
-        cls.IModel = TOModel
-        cls.OModel = OModel
+    def __init_subclass__(cls, model: Type[TDBModel], schema: Type[TIModel], oschema: Type[TOModel]) -> None:
+        cls.Model = model
+        cls.Schema = schema
+        cls.OSchema = oschema
 
     async def add(self, obj: TDBModel) -> TOModel:
-        if not self.DBModel:
+        if not self.Model:
             raise NotImplementedError
 
-        if type(obj) is self.OModel:
-            obj = self.IModel.from_orm(obj)
+        if type(obj) is self.OSchema:
+            obj = self.Schema.from_orm(obj)
 
-        obj = self.DBModel(**obj.dict())
+        obj = self.Model(**obj.dict())
         self.session.add(obj)
         await self.session.commit()
 
-        return self.OModel.from_orm(obj)
+        return self.OSchema.from_orm(obj)
 
     def __get_filters(
         self,
@@ -44,16 +44,16 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
             return (True,)
 
         if columns is None:
-            if self.DBModel.ids is None:
+            if self.Model.ids is None:
                 return (True,)
-            columns = self.DBModel.ids
+            columns = self.Model.ids
 
         if type(ids) not in [tuple, list]:
-            ids = self.__get_obj_ids(self.IModel.from_orm(ids), columns)
+            ids = self.__get_obj_ids(self.Schema.from_orm(ids), columns)
 
         filters = []
 
-        if self.DBModel is None:
+        if self.Model is None:
             raise NotImplementedError
 
         if columns is not None:
@@ -76,15 +76,15 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
     async def get(self, *ids: Any) -> Any:
         filters = self.__get_filters(ids)
 
-        if self.DBModel.ids is None:
+        if self.Model.ids is None:
             raise NotImplementedError
 
         obj = (
             (
                 await self.session.execute(
-                    select(self.DBModel)
+                    select(self.Model)
                     .where(and_(*filters))
-                    .order_by(self.DBModel.created_at.desc()),
+                    .order_by(self.Model.created_at.desc()),
                 )
             )
             .scalars()
@@ -92,31 +92,31 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         )
 
         if obj:
-            return self.OModel.from_orm(obj)
+            return self.OSchema.from_orm(obj)
 
     async def update(self, obj: Union[TIModel, TOModel]) -> TIModel:
-        if type(obj) is self.OModel:
-            obj = self.IModel.from_orm(obj)
+        if type(obj) is self.OSchema:
+            obj = self.Schema.from_orm(obj)
 
         filters = self.__get_filters(obj)
         (
             await self.session.execute(
-                update(self.DBModel)
+                update(self.Model)
                 .where(*filters)
                 .values(
                     **obj.dict(),
                 ),
             )
         )
-        return self.IModel.from_orm(obj)
+        return self.Schema.from_orm(obj)
 
     async def delete(self, obj: TIModel) -> None:
         filters = self.__get_filters(obj)
-        await self.session.execute(delete(self.DBModel).where(*filters))
+        await self.session.execute(delete(self.Model).where(*filters))
 
     async def all(self, ids: Union[tuple[Any], None] = None) -> Union[List[Any], None]:
-        filters = self.__get_filters(ids, columns=self.DBModel.ids_all)
-        objs = await self.session.execute(select(self.DBModel).where(*filters))
+        filters = self.__get_filters(ids, columns=self.Model.ids_all)
+        objs = await self.session.execute(select(self.Model).where(*filters))
 
         if objs:
-            return [self.OModel.from_orm(obj) for obj in objs]
+            return [self.OSchema.from_orm(obj) for obj in objs]
