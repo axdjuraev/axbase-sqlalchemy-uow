@@ -13,18 +13,22 @@ TOModel = TypeVar("TOModel", bound=BaseModel)
 
 
 class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel]):
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session
+    Model: Type[TDBModel]
+    Schema: Type[TIModel]
+    OSchema: Type[TOModel]
 
     def __init_subclass__(
         cls,
         model: Type[TDBModel],
         schema: Type[TIModel],
-        oschema: Union[Type[TOModel], None] = None
+        oschema: Union[TOModel],
     ) -> None:
         cls.Model = model
         cls.Schema = schema
         cls.OSchema = oschema if oschema is not None else schema
+
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
 
     async def add(self, obj: TDBModel) -> TOModel:
         if not self.Model:
