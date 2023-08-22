@@ -13,9 +13,9 @@ class BaseModel(BaseModelAt):
 
 
 class BaseModelUUID(BaseModel):
-    id: UUID
+    id: UUID | None = None
 
 
 class BaseModelInt(BaseModel):
-    id: int
+    id: int | None = None
 
