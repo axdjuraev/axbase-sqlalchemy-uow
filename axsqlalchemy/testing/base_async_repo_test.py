@@ -36,3 +36,14 @@ class BaseAsyncRepoTest(BaseAsyncTest, ABC):
             return await f(self, *args, **kwargs)
 
         return wrapper
+
+
+def with_session(f):
+    @wraps(f)
+    @BaseAsyncRepoTest.setupdb
+    async def wrapper(self: BaseAsyncRepoTest, *args, **kwargs):
+        async with self.session_maker() as session:
+            async with session.begin():
+                return await f(self, *args, session=session, **kwargs)
+
+    return wrapper
