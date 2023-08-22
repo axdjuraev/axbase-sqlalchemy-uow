@@ -18,7 +18,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
     OSchema: Type[TOModel]
 
     def __init_subclass__(cls) -> None:
-        types = cls.__orig_bases__[0].__args__
+        types = getattr(cls, "__orig_bases__")[0].__args__
         cls.Model, cls.Schema, cls.OSchema = types
 
     def __init__(self, session: AsyncSession) -> None:
