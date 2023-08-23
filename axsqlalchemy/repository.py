@@ -42,6 +42,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         self,
         ids: Union[tuple[Any], List[Any], None, TIModel, TOModel],
         columns: Union[List[Any], tuple[Any], None] = None,
+        use_defaults: bool = True,
     ) -> tuple[Any]:
         if ids is None:
             return (True,)
@@ -63,7 +64,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
             for colum, value in zip(columns, ids):
                 filters.append(colum == value)
         
-        if self._default_filters:
+        if self._default_filters and use_defaults:
             filters.extend(self._default_filters)
 
         return tuple(filters)
@@ -99,6 +100,21 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
         if obj:
             return self.OSchema.from_orm(obj)
+
+    async def update_status(self, *ids, status: bool) -> None:
+        filters = self.__get_filters(ids, use_defaults=False)
+        
+        if self.Model.ids is None:
+            raise NotImplementedError
+        
+        await self.session.execute(
+           update(self.Model)
+           .where(and_(*filters))
+           .values(is_active=status)
+        )
+
+    async def deactivate(self, *ids) -> None:
+        return await self.update_status(self, *ids, status=False)
 
     async def update(self, obj: Union[TIModel, TOModel]) -> TIModel:
         if type(obj) is self.OSchema:
