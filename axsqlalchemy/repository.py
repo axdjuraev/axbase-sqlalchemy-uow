@@ -16,7 +16,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
     Model: Type[TDBModel]
     Schema: Type[TIModel]
     OSchema: Type[TOModel]
-    _extra_filters = None
+    _default_filters = None
 
     def __init_subclass__(cls) -> None:
         types = getattr(cls, "__orig_bases__")[0].__args__
@@ -63,8 +63,8 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
             for colum, value in zip(columns, ids):
                 filters.append(colum == value)
         
-        if self._extra_filters:
-            filters.extend(self._extra_filters)
+        if self._default_filters:
+            filters.extend(self._default_filters)
 
         return tuple(filters)
 
