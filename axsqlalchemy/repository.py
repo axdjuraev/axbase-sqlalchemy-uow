@@ -1,6 +1,6 @@
 from typing import Any, Generic, List, Type, TypeVar, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, parse_obj_as
 from sqlalchemy import and_, delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from axabc.db import AbstractAsyncRepository
@@ -141,10 +141,8 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         filters = self.__get_filters(obj, extra_filters=filters)
         await self.session.execute(delete(self.Model).where(*filters))
 
-    async def all(self, ids: Union[tuple[Any], None] = None, filters: Union[tuple, None] = None) -> Union[List[Any], None]:
+    async def all(self, ids: Union[tuple[Any], None] = None, filters: Union[tuple, None] = None) -> List[Any]:
         filters = self.__get_filters(ids, columns=self.Model.ids_all, extra_filters=filters)
         objs = (await self.session.execute(select(self.Model).where(*filters))).unique().scalars().all()
-
-        if objs:
-            return [self.OSchema.from_orm(obj) for obj in objs]
+        return parse_obj_as(List[self.OSchema], objs)
 
