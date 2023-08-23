@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy import and_, delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from axabc.db import AbstractAsyncRepository
+
 from .model import BaseTableAt
 
 
@@ -32,7 +33,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         if type(obj) is self.OSchema:
             obj = self.Schema.from_orm(obj)
 
-        obj = self.Model(**obj.dict())
+        obj = self.Model(**obj.dict())  # type: ignore
         self.session.add(obj)
         await self.session.commit()
 
@@ -43,6 +44,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         ids: Union[tuple[Any], List[Any], None, TIModel, TOModel],
         columns: Union[List[Any], tuple[Any], None] = None,
         use_defaults: bool = True,
+        extra_filters: Union[tuple, None] = None,
     ) -> tuple[Any]:
         if ids is None:
             return (True,)
@@ -67,6 +69,9 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         if self._default_filters and use_defaults:
             filters.extend(self._default_filters)
 
+        if extra_filters:
+            filters.extend(extra_filters)
+
         return tuple(filters)
 
     def __get_obj_ids(self, obj: TIModel, columns) -> tuple[Any]:
@@ -80,8 +85,8 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
         return tuple(ids)
 
-    async def get(self, *ids: Any) -> Any:
-        filters = self.__get_filters(ids)
+    async def get(self, *ids: Any, filters: Union[tuple, None] = None) -> Any:
+        filters = self.__get_filters(ids, extra_filters=filters)
 
         if self.Model.ids is None:
             raise NotImplementedError
@@ -101,8 +106,8 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         if obj:
             return self.OSchema.from_orm(obj)
 
-    async def update_status(self, *ids, status: bool) -> None:
-        filters = self.__get_filters(ids, use_defaults=False)
+    async def update_status(self, *ids, status: bool, filters: Union[tuple, None] = None) -> None:
+        filters = self.__get_filters(ids, use_defaults=False, extra_filters=filters)
         
         if self.Model.ids is None:
             raise NotImplementedError
@@ -113,14 +118,14 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
            .values(is_active=status)
         )
 
-    async def deactivate(self, *ids) -> None:
-        return await self.update_status(self, *ids, status=False)
+    async def deactivate(self, *ids, filters: Union[tuple, None] = None) -> None:
+        return await self.update_status(self, *ids, status=False, filters=filters)
 
-    async def update(self, obj: Union[TIModel, TOModel]) -> TIModel:
+    async def update(self, obj: Union[TIModel, TOModel], filters: Union[tuple, None] = None) -> TIModel:
         if type(obj) is self.OSchema:
             obj = self.Schema.from_orm(obj)
 
-        filters = self.__get_filters(obj)
+        filters = self.__get_filters(obj, extra_filters=filters)
         (
             await self.session.execute(
                 update(self.Model)
@@ -132,13 +137,14 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         )
         return self.Schema.from_orm(obj)
 
-    async def delete(self, obj: TIModel) -> None:
-        filters = self.__get_filters(obj)
+    async def delete(self, obj: TIModel, filters: Union[tuple, None] = None) -> None:
+        filters = self.__get_filters(obj, extra_filters=filters)
         await self.session.execute(delete(self.Model).where(*filters))
 
-    async def all(self, ids: Union[tuple[Any], None] = None) -> Union[List[Any], None]:
-        filters = self.__get_filters(ids, columns=self.Model.ids_all)
+    async def all(self, ids: Union[tuple[Any], None] = None, filters: Union[tuple, None] = None) -> Union[List[Any], None]:
+        filters = self.__get_filters(ids, columns=self.Model.ids_all, extra_filters=filters)
         objs = (await self.session.execute(select(self.Model).where(*filters))).unique().scalars().all()
 
         if objs:
             return [self.OSchema.from_orm(obj) for obj in objs]
+
