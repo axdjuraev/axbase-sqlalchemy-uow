@@ -26,6 +26,11 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
+    def paginate_query(self, query, count: Union[int, None], page: Union[int, None]):
+        if count and page:
+            return query.offset((page - 1) * count).limit(count)
+        return query
+
     async def add(self, obj: TIModel) -> TOModel:
         if not self.Model:
             raise NotImplementedError
@@ -140,8 +145,23 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         filters = self.__get_filters(ids, extra_filters=filters, use_defaults=False)
         await self.session.execute(delete(self.Model).where(*filters))
 
-    async def all(self, ids: Union[tuple[Any], None] = None, filters: Union[tuple, None] = None) -> List[Any]:
+    async def all(
+        self, 
+        ids: Union[tuple[Any], None] = None, 
+        filters: Union[tuple, None] = None, 
+        count: Union[int, None] = None,
+        page: Union[int, None] = None,
+    ) -> List[Any]:
         filters = self.__get_filters(ids, columns=self.Model.ids_all, extra_filters=filters)
-        objs = (await self.session.execute(select(self.Model).where(*filters).order_by(self.Model.created_at.desc()))).unique().scalars().all()
+        query = self.paginate_query( 
+            (
+                select(self.Model)
+                .where(*filters)
+                .order_by(self.Model.created_at.desc()) 
+            ),
+            count=count,
+            page=page,
+        )
+        objs = (await self.session.execute(query)).unique().scalars().all()
         return parse_obj_as(List[self.OSchema], objs)
 
