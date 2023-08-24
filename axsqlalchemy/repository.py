@@ -142,6 +142,6 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
     async def all(self, ids: Union[tuple[Any], None] = None, filters: Union[tuple, None] = None) -> List[Any]:
         filters = self.__get_filters(ids, columns=self.Model.ids_all, extra_filters=filters)
-        objs = (await self.session.execute(select(self.Model).where(*filters))).unique().scalars().all()
+        objs = (await self.session.execute(select(self.Model).where(*filters).order_by(self.Model.created_at.desc()))).unique().scalars().all()
         return parse_obj_as(List[self.OSchema], objs)
 
