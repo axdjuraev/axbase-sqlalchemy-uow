@@ -119,7 +119,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         )
 
     async def deactivate(self, *ids, filters: Union[tuple, None] = None) -> None:
-        return await self.update_status(self, *ids, status=False, filters=filters)
+        return await self.update_status(*ids, status=False, filters=filters)
 
     async def update(self, obj: Union[TIModel, TOModel], filters: Union[tuple, None] = None) -> TIModel:
         if type(obj) is self.OSchema:
