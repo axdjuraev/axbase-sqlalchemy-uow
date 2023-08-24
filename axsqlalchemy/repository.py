@@ -46,25 +46,24 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         use_defaults: bool = True,
         extra_filters: Union[tuple, None] = None,
     ) -> tuple[Any]:
-        if ids is None:
-            return (True,)
-
-        if columns is None:
-            if self.Model.ids is None:
-                return (True,)
-            columns = self.Model.ids
-
-        if type(ids) not in [tuple, list]:
-            ids = self.__get_obj_ids(self.Schema.from_orm(ids), columns)
-
         filters = []
+        
+        if ids:
+            if columns is None:
+                if self.Model.ids is None:
+                    return (True,)
+                columns = self.Model.ids
 
-        if self.Model is None:
-            raise NotImplementedError
+            if type(ids) not in [tuple, list]:
+                ids = self.__get_obj_ids(self.Schema.from_orm(ids), columns)
 
-        if columns is not None:
-            for colum, value in zip(columns, ids):
-                filters.append(colum == value)
+
+            if self.Model is None:
+                raise NotImplementedError
+
+            if columns is not None:
+                for colum, value in zip(columns, ids):
+                    filters.append(colum == value)
         
         if self._default_filters and use_defaults:
             filters.extend(self._default_filters)
@@ -72,7 +71,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         if extra_filters:
             filters.extend(extra_filters)
 
-        return tuple(filters)
+        return tuple(filters) or (True, )
 
     def __get_obj_ids(self, obj: TIModel, columns) -> tuple[Any]:
         ids = []

@@ -47,7 +47,7 @@ class AbstractBaseModel(Base, metaclass=Meta):
     @classmethod
     @property
     def ids_all(cls) -> Union[List[Any], tuple[Any], None]:
-        return cls._ids_all
+        return cls.ids
 
 
 class BaseTableAt(AbstractBaseModel):
