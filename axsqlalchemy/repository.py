@@ -137,7 +137,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         return self.Schema.from_orm(obj)
 
     async def delete(self, *ids, filters: Union[tuple, None] = None) -> None:
-        filters = self.__get_filters(ids, extra_filters=filters)
+        filters = self.__get_filters(ids, extra_filters=filters, use_defaults=False)
         await self.session.execute(delete(self.Model).where(*filters))
 
     async def all(self, ids: Union[tuple[Any], None] = None, filters: Union[tuple, None] = None) -> List[Any]:
