@@ -30,7 +30,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         if not self.Model:
             raise NotImplementedError
 
-        if type(obj) is self.OSchema:
+        if type(obj) in (self.OSchema, self.Schema):
             obj = self.Schema.from_orm(obj)
 
         obj = self.Model(**obj.dict())  # type: ignore
@@ -84,7 +84,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
         return tuple(ids)
 
-    async def get(self, *ids: Any, filters: Union[tuple, None] = None) -> Any:
+    async def get(self, *ids: Any, filters: Union[tuple, None] = None) -> Union[TOModel, None]:
         filters = self.__get_filters(ids, extra_filters=filters)
 
         if self.Model.ids is None:
@@ -121,7 +121,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         return await self.update_status(*ids, status=False, filters=filters)
 
     async def update(self, obj: Union[TIModel, TOModel], filters: Union[tuple, None] = None) -> TIModel:
-        if type(obj) is self.OSchema:
+        if type(obj) in (self.OSchema, self.Schema):
             obj = self.Schema.from_orm(obj)
 
         filters = self.__get_filters(obj, extra_filters=filters)
