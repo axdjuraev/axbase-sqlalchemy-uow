@@ -1,7 +1,7 @@
+import math
 from typing import Any, Generic, List, Type, TypeVar, Union
-
 from pydantic import BaseModel, parse_obj_as
-from sqlalchemy import and_, delete, select, update
+from sqlalchemy import and_, delete, select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from axabc.db import AbstractAsyncRepository
 
@@ -164,4 +164,25 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         )
         objs = (await self.session.execute(query)).unique().scalars().all()
         return parse_obj_as(List[self.OSchema], objs)
+
+    async def all_page_count(
+        self, 
+        ids: Union[tuple[Any], None] = None, 
+        filters: Union[tuple, None] = None, 
+        count: Union[int, None] = None,
+    ) -> int:
+        all_count = await self.all_count(ids, filters)
+        return math.ceil(all_count / count) if count else 1 
+
+    async def all_count(
+        self, 
+        ids: Union[tuple[Any], None] = None, 
+        filters: Union[tuple, None] = None, 
+    ) -> int:
+        filters = self.__get_filters(ids, columns=self.Model.ids_all, extra_filters=filters)
+        query = ( 
+            select(func.count(self.Model.created_at))
+            .where(*filters)
+        )
+        return (await self.session.execute(query)).scalar()
 
