@@ -16,6 +16,8 @@ class BaseAsyncRepoTest(BaseAsyncTest, ABC):
     SettingsClass: Union[Type[Settings], None] = None
     DBBase: Any = None
     TRepo: Optional[Type[BaseRepository]] = None
+    repo: Optional[BaseRepository] = None
+    session: AsyncSession
 
     @staticmethod
     def async2sync_url(url: str) -> str:
@@ -57,7 +59,8 @@ def with_session(f):
     async def wrapper(self: BaseAsyncRepoTest, *args, **kwargs):
         async with self.session_maker() as session:  # type: ignore
             async with session.begin():
-                return await f(self, *args, session=session, **kwargs)
+                self.session = session
+                return await f(self, *args, **kwargs)
 
     return wrapper
 
@@ -65,11 +68,11 @@ def with_session(f):
 def with_repo(f):
     @wraps(f)
     @with_session
-    async def wrapper(self: BaseAsyncRepoTest, *args, session: AsyncSession, **kwargs):
+    async def wrapper(self: BaseAsyncRepoTest, *args, **kwargs):
         if self.TRepo is None:
             raise NotImplementedError('TRepo is None')
-        repo = self.TRepo(session=session)
-        return await f(self, *args, session=session, repo=repo, **kwargs)
+        self.repo = self.TRepo(session=self.session)
+        return await f(self, *args, **kwargs)
 
     return wrapper
 
