@@ -1,9 +1,10 @@
 from abc import ABC
 import re
-from typing import Union, Type, Any
+from typing import Optional, Union, Type, Any
 from functools import wraps
 from axabc.test import BaseAsyncTest
 from sqlalchemy import create_engine
+from axsqlalchemy.repository import BaseRepository
 from axsqlalchemy.settings import Settings
 from axsqlalchemy.utils.creation import create_models
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -14,6 +15,7 @@ class BaseAsyncRepoTest(BaseAsyncTest, ABC):
     __is_dbsetup = False
     SettingsClass: Union[Type[Settings], None] = None
     DBBase: Any = None
+    TRepo: Optional[Type[BaseRepository]] = None
 
     @staticmethod
     def async2sync_url(url: str) -> str:
@@ -50,10 +52,22 @@ class BaseAsyncRepoTest(BaseAsyncTest, ABC):
 
 def with_session(f):
     @wraps(f)
-    @BaseAsyncRepoTest.setupdb
     async def wrapper(self: BaseAsyncRepoTest, *args, **kwargs):
         async with self.session_maker() as session:  # type: ignore
             async with session.begin():
                 return await f(self, *args, session=session, **kwargs)
 
     return wrapper
+
+
+def with_repo(f):
+    @wraps(f)
+    @with_session
+    async def wrapper(self: BaseAsyncRepoTest, *args, session: AsyncSession, **kwargs):
+        if self.TRepo is None:
+            raise NotImplementedError('TRepo is None')
+        repo = self.TRepo(session=session)
+        return await f(self, *args, session=session, repo=repo, **kwargs)
+
+    return wrapper
+
