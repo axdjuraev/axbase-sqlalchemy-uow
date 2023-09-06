@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 class BaseAsyncRepoTest(BaseAsyncTest, ABC):
-    __is_dbsetup = False
+    _is_dbsetup = False
     SettingsClass: Union[Type[Settings], None] = None
     DBBase: Any = None
     TRepo: Optional[Type[BaseRepository]] = None
@@ -26,7 +26,8 @@ class BaseAsyncRepoTest(BaseAsyncTest, ABC):
         if cls.SettingsClass is None:
             raise NotImplementedError("SettingsClass is not implemented")
         settings = cls.SettingsClass()  # type: ignore
-        sync_url = cls.async2sync_url(str(settings.db_connection_string))
+        sync_settings = cls.SettingsClass()  # type: ignore
+        sync_settings.DB_DRIVERNAME = cls.async2sync_url(sync_settings.DB_DRIVERNAME)
 
         cls.engine = create_async_engine(settings.db_connection_string)
         cls.session_maker = sessionmaker(
@@ -34,7 +35,7 @@ class BaseAsyncRepoTest(BaseAsyncTest, ABC):
             class_=AsyncSession,
             expire_on_commit=False,
         )
-        cls.sync_engine = create_engine(sync_url)
+        cls.sync_engine = create_engine(sync_settings.db_connection_string)
         cls.DBBase.metadata.create_all(cls.sync_engine)
 
     @staticmethod
@@ -43,7 +44,8 @@ class BaseAsyncRepoTest(BaseAsyncTest, ABC):
         async def wrapper(self, *args, **kwargs):
             if self.DBBase is None:
                 raise NotImplementedError("DBBase is not implemented")
-            if not self.__is_dbsetup:
+            if not self._is_dbsetup:
+                self._is_db_setup = True
                 await create_models(self.engine, self.DBBase)
             return await f(self, *args, **kwargs)
 
