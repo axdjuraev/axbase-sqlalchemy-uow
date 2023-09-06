@@ -31,7 +31,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
             return query.offset((page - 1) * count).limit(count)
         return query
 
-    async def add(self, obj: TIModel) -> TOModel:
+    async def add(self, obj: TIModel, autocommit=True) -> TOModel:
         if not self.Model:
             raise NotImplementedError
 
@@ -40,7 +40,9 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
 
         obj = self.Model(**obj.dict())  # type: ignore
         self.session.add(obj)
-        await self.session.commit()
+        
+        if autocommit:
+            await self.session.commit()
 
         return self.OSchema.from_orm(obj)
 
