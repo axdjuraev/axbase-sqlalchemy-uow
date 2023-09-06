@@ -1,13 +1,14 @@
+from typing import Optional
 from pydantic import BaseSettings
 from sqlalchemy.engine.url import URL
 
 
 class Settings(BaseSettings):
     DB_DRIVERNAME: str = "postgresql+asyncpg"
-    DB_HOST: str = "localhost"
-    DB_PORT: int = 5432
-    DB_USERNAME: str
-    DB_PASSWORD: str
+    DB_HOST: Optional[str] = None
+    DB_PORT: Optional[int] = None
+    DB_USERNAME: Optional[str] = None
+    DB_PASSWORD: Optional[str] = None
     DB_DATABASE: str
 
     @property
