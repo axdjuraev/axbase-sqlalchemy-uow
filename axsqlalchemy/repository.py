@@ -153,7 +153,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         filters: Union[tuple, None] = None, 
         count: Union[int, None] = None,
         page: Union[int, None] = None,
-    ) -> List[Any]:
+    ) -> List[TOModel]:
         filters = self.__get_filters(ids, columns=self.Model.ids_all, extra_filters=filters)
         query = self.paginate_query( 
             (
