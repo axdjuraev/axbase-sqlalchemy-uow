@@ -131,7 +131,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         if type(obj) in (self.OSchema, self.Schema):
             obj = self.Schema.from_orm(obj)
 
-        filters = self.__get_filters(obj, extra_filters=filters)
+        filters = self.__get_filters(obj, extra_filters=filters, use_defaults=False)
         (
             await self.session.execute(
                 update(self.Model)
