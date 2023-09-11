@@ -92,7 +92,7 @@ class BaseRepository(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel
         return tuple(ids)
 
     async def get(self, *ids: Any, filters: Union[tuple, None] = None) -> Union[TOModel, None]:
-        filters = self.__get_filters(ids, extra_filters=filters)
+        filters = self.__get_filters(ids, extra_filters=filters, use_defaults=False)
 
         if self.Model.ids is None:
             raise NotImplementedError
