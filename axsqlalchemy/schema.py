@@ -1,9 +1,10 @@
 from uuid import UUID
 from datetime import datetime
-from pydantic import BaseModel as _BaseModel, root_validator
+from pydantic import BaseModel as _BaseModel, Field, root_validator
+
 
 class BaseModelAt(_BaseModel):
-    created_at: datetime | None = None
+    created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime | None = None
 
 
