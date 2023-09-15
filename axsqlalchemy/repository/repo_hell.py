@@ -33,22 +33,6 @@ class BaseRepository(AbstractAsyncRepository):
     async def deactivate(self, *ids, filters: Union[tuple, None] = None) -> None:
         return await self.update_status(*ids, status=False, filters=filters)
 
-    async def update(self, obj: Union[TIModel, TOModel], filters: Union[tuple, None] = None) -> TIModel:
-        if type(obj) in (self.OSchema, self.Schema):
-            obj = self.Schema.from_orm(obj)
-
-        filters = self.__get_filters(obj, extra_filters=filters, use_defaults=False)
-        (
-            await self.session.execute(
-                update(self.Model)
-                .where(*filters)
-                .values(
-                    **obj.dict(),
-                ),
-            )
-        )
-        return self.Schema.from_orm(obj)
-
     async def delete(self, *ids, filters: Union[tuple, None] = None) -> None:
         filters = self.__get_filters(ids, extra_filters=filters, use_defaults=False)
         await self.session.execute(delete(self.Model).where(*filters))
