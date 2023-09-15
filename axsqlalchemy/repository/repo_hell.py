@@ -12,11 +12,6 @@ class BaseRepository(AbstractAsyncRepository):
         types = getattr(cls, "__orig_bases__")[0].__args__
         cls.Model, cls.Schema, cls.OSchema = types
 
-    def paginate_query(self, query, count: Union[int, None], page: Union[int, None]):
-        if count and page:
-            return query.offset((page - 1) * count).limit(count)
-        return query
-
     async def update_status(self, *ids, status: bool, filters: Union[tuple, None] = None) -> None:
         filters = self.__get_filters(ids, use_defaults=False, extra_filters=filters)
         
