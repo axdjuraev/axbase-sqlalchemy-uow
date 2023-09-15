@@ -34,9 +34,6 @@ class BaseRepository(AbstractAsyncRepository):
 
         return self.OSchema.from_orm(obj)
 
-
-
-
     async def update_status(self, *ids, status: bool, filters: Union[tuple, None] = None) -> None:
         filters = self.__get_filters(ids, use_defaults=False, extra_filters=filters)
         

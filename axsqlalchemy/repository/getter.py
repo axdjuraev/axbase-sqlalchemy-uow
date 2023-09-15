@@ -1,13 +1,13 @@
+from sqlalchemy import select, and_
+from typing import Generic, Iterable, Optional
+
+from .types import TIModel, TOModel, TDBModel
 from .base import BaseRepoCreator
 
 
-
-class GetterRepo(BaseRepoCreator):
-    async def get(self, *ids: Any, filters: Union[tuple, None] = None) -> Union[TOModel, None]:
-        filters = self.__get_filters(ids, extra_filters=filters, use_defaults=False)
-
-        if self.Model.ids is None:
-            raise NotImplementedError
+class GetterRepo(BaseRepoCreator[TDBModel, TIModel, TOModel], Generic[TDBModel, TIModel, TOModel]):
+    async def get(self, *ids, filters: Iterable = tuple()) -> Optional[TOModel]:
+        filters = self._get_filters(ids, extra_filters=filters, use_defaults=False)
 
         obj = (
             (
@@ -21,6 +21,5 @@ class GetterRepo(BaseRepoCreator):
             .first()
         )
 
-        if obj:
-            return self.OSchema.from_orm(obj)
+        return obj and self.OSchema.from_orm(obj)
 
