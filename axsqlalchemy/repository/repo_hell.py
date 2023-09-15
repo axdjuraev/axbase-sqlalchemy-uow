@@ -9,7 +9,6 @@ from .types import TDBModel, TIModel, TOModel
 
 
 class BaseRepository(AbstractAsyncRepository):
-
     def __init_subclass__(cls) -> None:
         types = getattr(cls, "__orig_bases__")[0].__args__
         cls.Model, cls.Schema, cls.OSchema = types
@@ -18,21 +17,6 @@ class BaseRepository(AbstractAsyncRepository):
         if count and page:
             return query.offset((page - 1) * count).limit(count)
         return query
-
-    async def add(self, obj: TIModel, autocommit=True) -> TOModel:
-        if not self.Model:
-            raise NotImplementedError
-
-        if type(obj) in (self.OSchema, self.Schema):
-            obj = self.Schema.from_orm(obj)
-
-        obj = self.Model(**obj.dict())  # type: ignore
-        self.session.add(obj)
-        
-        if autocommit:
-            await self.session.commit()
-
-        return self.OSchema.from_orm(obj)
 
     async def update_status(self, *ids, status: bool, filters: Union[tuple, None] = None) -> None:
         filters = self.__get_filters(ids, use_defaults=False, extra_filters=filters)
