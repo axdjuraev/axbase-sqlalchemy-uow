@@ -1,13 +1,12 @@
-import math
 from typing import Generic, Iterable, List, Optional
-from sqlalchemy import func, select
+from sqlalchemy import select
 from pydantic import parse_obj_as
 
 from .types import TIModel, TOModel, TDBModel
-from .all_getter import AllGetterRepo
+from .paginated import PaginatedRepo
 
 
-class PaginatedAllGetterRepo(AllGetterRepo[TDBModel, TIModel, TOModel], Generic[TDBModel, TIModel, TOModel]):
+class PaginatedAllGetterRepo(PaginatedRepo[TDBModel, TIModel, TOModel], Generic[TDBModel, TIModel, TOModel]):
     async def all(self, *ids, filters: Iterable = tuple(), count: Optional[int] = None, page: Optional[int] = None) -> list[TOModel]:
         filters = self._get_filters(ids, columns=self.ids4all, extra_filters=filters)
         objs = (
@@ -25,26 +24,4 @@ class PaginatedAllGetterRepo(AllGetterRepo[TDBModel, TIModel, TOModel], Generic[
         ).unique().scalars().all()
 
         return parse_obj_as(List[self.OSchema], objs)
-
-    async def all_page_count(self, *ids, filters: Iterable = tuple(), count: Optional[int] = None) -> int:
-        all_count = await self.all_count(ids, filters)
-        return math.ceil(all_count / count) if count else 1 
-
-    async def all_count(self, *ids, filters: Iterable = tuple()) -> int:
-        filters = self._get_filters(ids, columns=self.ids4all, extra_filters=filters)
-
-        obj = ( 
-            await self.session.execute(
-                select(func.count(self.Model.created_at))
-                .where(*filters)
-            )
-        ).scalar()
-
-        return obj or 0
-
-    def paginate_query(self, query, count: Optional[int] = None, page: Optional[int] = None):
-        if count and page:
-            return query.offset((page - 1) * count).limit(count)
-
-        return query
 
