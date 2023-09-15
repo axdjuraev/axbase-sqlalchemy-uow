@@ -10,7 +10,7 @@ class UpdateterRepo(BaseRepoCreator[TDBModel, TIModel, TOModel], Generic[TDBMode
         if type(obj) in (self.OSchema, self.Schema):
             obj = self.Schema.from_orm(obj)
 
-        filters = self._get_filters(obj, extra_filters=filters, use_defaults=False)
+        filters = self._get_filters((obj,), extra_filters=filters, use_defaults=False)
 
         await self.session.execute(
             update(self.Model)
