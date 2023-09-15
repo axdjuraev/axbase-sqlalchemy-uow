@@ -2,11 +2,12 @@ from abc import ABC
 from typing import Any, Generic, Iterable, Type
 from sqlalchemy import Column, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
+from axabc.db.async_repository import AbstractAsyncRepository
 
 from .types import TIModel, TOModel, TDBModel
 
 
-class BaseRepoCreator(ABC, Generic[TDBModel, TIModel, TOModel]):
+class BaseRepoCreator(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOModel]):
     Model: Type[TDBModel]
     Schema: Type[TIModel]
     OSchema: Type[TOModel]
@@ -15,7 +16,7 @@ class BaseRepoCreator(ABC, Generic[TDBModel, TIModel, TOModel]):
     ids: tuple[Column]
 
     def __init__(self, session: AsyncSession) -> None:
-        self.session = session
+        super().__init__(session)
         self._setup_ids()
 
     def _get_filters(self, *ids, columns: Iterable[Any] = tuple(), use_defaults: bool = True, extra_filters: Iterable[Any] = tuple()) -> tuple[Any]:
