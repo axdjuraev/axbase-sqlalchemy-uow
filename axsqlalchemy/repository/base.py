@@ -3,6 +3,7 @@ from typing import Any, Generic, Iterable, Type
 from sqlalchemy import Column, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
 from axabc.db.async_repository import AbstractAsyncRepository
+from sqlalchemy.sql.dml import isinsert
 
 from .types import TIModel, TOModel, TDBModel
 
@@ -25,6 +26,7 @@ class BaseRepoCreator(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOMode
 
         filters = [*extra_filters]
         columns = columns or self.ids
+        ids = self._get_obj_ids(ids[-1], columns) if self._is_obj(ids[-1]) else ids 
 
         if columns is not None and ids:
             for colum, value in zip(columns, ids):
@@ -34,6 +36,19 @@ class BaseRepoCreator(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOMode
             filters.extend(self._default_filters)
 
         return tuple(filters) or (True, )
+
+    def _get_obj_ids(self, obj: TIModel, columns) -> tuple[Any]:
+        if not columns:
+            return tuple()
+
+        ids = []
+        for column in columns:
+            ids.append(getattr(obj, column.name))
+
+        return tuple(ids)
+
+    def _is_obj(self, obj):
+        return isinstance(obj, self.Schema) or isinstance(obj, self.OSchema)
 
     def _setup_ids(self):
         if hasattr(self, 'ids'):
