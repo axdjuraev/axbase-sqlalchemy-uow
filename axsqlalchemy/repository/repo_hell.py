@@ -1,4 +1,3 @@
-
 import math
 from typing import Any, Generic, List, Type, Union
 from pydantic import parse_obj_as
@@ -37,44 +36,4 @@ class BaseRepository(AbstractAsyncRepository):
         filters = self.__get_filters(ids, extra_filters=filters, use_defaults=False)
         await self.session.execute(delete(self.Model).where(*filters))
 
-    async def all(
-        self, 
-        ids: Union[tuple[Any], None] = None, 
-        filters: Union[tuple, None] = None, 
-        count: Union[int, None] = None,
-        page: Union[int, None] = None,
-    ) -> List[TOModel]:
-        filters = self.__get_filters(ids, columns=self.Model.ids_all, extra_filters=filters)
-        query = self.paginate_query( 
-            (
-                select(self.Model)
-                .where(*filters)
-                .order_by(self.Model.created_at.desc()) 
-            ),
-            count=count,
-            page=page,
-        )
-        objs = (await self.session.execute(query)).unique().scalars().all()
-        return parse_obj_as(List[self.OSchema], objs)
-
-    async def all_page_count(
-        self, 
-        ids: Union[tuple[Any], None] = None, 
-        filters: Union[tuple, None] = None, 
-        count: Union[int, None] = None,
-    ) -> int:
-        all_count = await self.all_count(ids, filters)
-        return math.ceil(all_count / count) if count else 1 
-
-    async def all_count(
-        self, 
-        ids: Union[tuple[Any], None] = None, 
-        filters: Union[tuple, None] = None, 
-    ) -> int:
-        filters = self.__get_filters(ids, columns=self.Model.ids_all, extra_filters=filters)
-        query = ( 
-            select(func.count(self.Model.created_at))
-            .where(*filters)
-        )
-        return (await self.session.execute(query)).scalar()
 
