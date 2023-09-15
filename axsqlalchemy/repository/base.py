@@ -19,14 +19,14 @@ class BaseRepoCreator(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOMode
         super().__init__(session)
         self._setup_ids()
 
-    def _get_filters(self, *ids, columns: Iterable[Any] = tuple(), use_defaults: bool = True, extra_filters: Iterable[Any] = tuple()) -> tuple[Any]:
+    def _get_filters(self, ids = tuple(), columns: Iterable[Any] = tuple(), use_defaults: bool = True, extra_filters: Iterable[Any] = tuple()) -> tuple[Any]:
         if not ids:
             return (*self._default_filters, *extra_filters) or (True, )
 
         filters = [*extra_filters]
         columns = columns or self.ids
 
-        if columns is not None:
+        if columns is not None and ids:
             for colum, value in zip(columns, ids):
                 filters.append(colum == value)
         

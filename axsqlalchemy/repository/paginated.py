@@ -8,7 +8,7 @@ from .all_getter import AllGetterRepo
 
 class PaginatedRepo(AllGetterRepo[TDBModel, TIModel, TOModel], Generic[TDBModel, TIModel, TOModel]):
     async def all_page_count(self, *ids, filters: Iterable = tuple(), count: Optional[int] = None) -> int:
-        all_count = await self.all_count(ids, filters)
+        all_count = await self.all_count(*ids, filters)
         return math.ceil(all_count / count) if count else 1 
 
     async def all_count(self, *ids, filters: Iterable = tuple()) -> int:
