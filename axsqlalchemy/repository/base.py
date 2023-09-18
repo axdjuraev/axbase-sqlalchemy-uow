@@ -1,9 +1,7 @@
-from abc import ABC
 from typing import Any, Generic, Iterable, Type
 from sqlalchemy import Column, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
 from axabc.db.async_repository import AbstractAsyncRepository
-from sqlalchemy.sql.dml import isinsert
 
 from .types import TIModel, TOModel, TDBModel
 

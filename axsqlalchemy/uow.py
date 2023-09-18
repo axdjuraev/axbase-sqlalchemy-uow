@@ -56,3 +56,4 @@ class UOWFactory(AbstractUOWFactory, Generic[TRepoCollector]):
     def __call__(self) -> UOW[TRepoCollector]:
         session = self.session_maker()
         return UOW(self.repo, session)
+
