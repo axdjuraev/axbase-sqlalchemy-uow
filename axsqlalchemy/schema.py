@@ -1,9 +1,10 @@
 from uuid import UUID
 from datetime import datetime
-from pydantic import BaseModel as _BaseModel, Field, root_validator
+from pydantic import Field, root_validator
+from axabc.db import BaseSchema as _BaseSchema
 
 
-class BaseModelAt(_BaseModel):
+class BaseModelAt(_BaseSchema):
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime | None = None
 
