@@ -1,4 +1,4 @@
-from typing import Any, Generic, Iterable, Type
+from typing import Any, Generic, Iterable, Type, Union
 from sqlalchemy import Column, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
 from axabc.db.async_repository import AbstractAsyncRepository
@@ -18,12 +18,12 @@ class BaseRepoCreator(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOMode
         super().__init__(session)
         self._setup_ids()
 
-    def _get_filters(self, ids = tuple(), columns: Iterable[Any] = tuple(), use_defaults: bool = True, extra_filters: Iterable[Any] = tuple()) -> tuple[Any]:
+    def _get_filters(self, ids = tuple(), columns: Union[Iterable[Any], None] = None, use_defaults: bool = True, extra_filters: Iterable[Any] = tuple()) -> tuple[Any]:
         if not ids:
             return (*self._default_filters, *extra_filters) or (True, )
 
         filters = [*extra_filters]
-        columns = columns or self.ids
+        columns = self.ids if columns is None else columns
         ids = self._get_obj_ids(ids[-1], columns) if self._is_obj(ids[-1]) else ids 
 
         if columns is not None and ids:
