@@ -18,7 +18,10 @@ class BaseRepository(
 	PaginatedAllGetterRepo[TDBModel, TIModel, TOModel],
     Generic[TDBModel, TIModel, TOModel],
 ):
+    __abstract__ = True 
+
     def __init_subclass__(cls) -> None:
-        types = getattr(cls, "__orig_bases__")[0].__args__
-        cls.Model, cls.Schema, cls.OSchema = types
+        if not cls.__dict__.get('__abstract__'):
+            types = getattr(cls, "__orig_bases__")[0].__args__
+            cls.Model, cls.Schema, cls.OSchema = types
 
