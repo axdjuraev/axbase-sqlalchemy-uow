@@ -12,12 +12,13 @@ class PaginatedAllGetterRepo(PaginatedRepo[TDBModel, TIModel, TOModel], Generic[
         return self._base_all_query
 
     async def all(self, *ids, filters: Iterable = tuple(), count: Optional[int] = None, page: Optional[int] = None, query = None) -> list[TOModel]:
+        query = query if query is not None else self._base_all_query
         return await super().all(
             *ids, 
             filters=filters,
             query=(
                 self.paginate_query( 
-                    (query if query else self._base_all_paginated_query),
+                    query,
                     count=count,
                     page=page,
                 )

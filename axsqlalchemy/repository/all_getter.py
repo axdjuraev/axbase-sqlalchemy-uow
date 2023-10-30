@@ -13,11 +13,12 @@ class AllGetterRepo(BaseRepoCreator[TDBModel, TIModel, TOModel], Generic[TDBMode
         return select(self.Model)
 
     async def all(self, *ids, filters: Iterable = tuple(), query = None) -> list[TOModel]:
+        query = query if query is not None else self._base_all_query
         filters = self._get_filters(ids, columns=self.ids4all, extra_filters=filters)
 
         objs = (
             await self.session.execute(
-                (query if query else self._base_all_query)
+                query
                 .where(*filters)
                 .order_by(self.Model.created_at.desc()) 
             )
