@@ -17,7 +17,7 @@ class PaginatedAllGetterRepo(PaginatedRepo[TDBModel, TIModel, TOModel], Generic[
             filters=filters,
             query=(
                 self.paginate_query( 
-                    (query or self._base_all_paginated_query),
+                    (query if query else self._base_all_paginated_query),
                     count=count,
                     page=page,
                 )

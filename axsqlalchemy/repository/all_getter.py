@@ -17,7 +17,7 @@ class AllGetterRepo(BaseRepoCreator[TDBModel, TIModel, TOModel], Generic[TDBMode
 
         objs = (
             await self.session.execute(
-                (query or self._base_all_query)
+                (query if query else self._base_all_query)
                 .where(*filters)
                 .order_by(self.Model.created_at.desc()) 
             )
