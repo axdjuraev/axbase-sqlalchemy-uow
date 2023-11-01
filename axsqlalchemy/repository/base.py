@@ -1,4 +1,5 @@
 from typing import Any, Generic, Iterable, Type, Union
+from pydantic import BaseModel
 from sqlalchemy import Column, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
 from axabc.db.async_repository import AbstractAsyncRepository
@@ -46,7 +47,7 @@ class BaseRepoCreator(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOMode
         return tuple(ids)
 
     def _is_obj(self, obj):
-        return isinstance(obj, self.Schema) or isinstance(obj, self.OSchema)
+        return isinstance(obj, BaseModel)
 
     def _setup_ids(self):
         if hasattr(self, 'ids'):
