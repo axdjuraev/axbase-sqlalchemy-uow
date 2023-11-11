@@ -1,9 +1,10 @@
-from typing import Generic, Iterable, List, Optional
+from typing import Generic, Iterable, List, Type
 from sqlalchemy import select
-from pydantic import parse_obj_as
+from pydantic import BaseModel, parse_obj_as
 
 from .types import TIModel, TOModel, TDBModel
 from .base import BaseRepoCreator
+
 
 class AllGetterRepo(BaseRepoCreator[TDBModel, TIModel, TOModel], Generic[TDBModel, TIModel, TOModel]):
     ids4all: Iterable = tuple()
@@ -11,6 +12,10 @@ class AllGetterRepo(BaseRepoCreator[TDBModel, TIModel, TOModel], Generic[TDBMode
     @property
     def _base_all_query(self): 
         return select(self.Model)
+
+    @property
+    def _all_schema(self) -> Type[BaseModel]:
+        return self.OSchema
 
     async def all(self, *ids, filters: Iterable = tuple(), query = None) -> list[TOModel]:
         query = query if query is not None else self._base_all_query
@@ -24,5 +29,5 @@ class AllGetterRepo(BaseRepoCreator[TDBModel, TIModel, TOModel], Generic[TDBMode
             )
         ).unique().scalars().all()
 
-        return parse_obj_as(List[self.OSchema], objs)
+        return parse_obj_as(List[self._all_schema], objs)  # type: ignore
 
