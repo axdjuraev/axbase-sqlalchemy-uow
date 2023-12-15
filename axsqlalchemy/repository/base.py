@@ -14,6 +14,7 @@ class BaseRepoCreator(AbstractAsyncRepository, Generic[TDBModel, TIModel, TOMode
 
     _default_filters: tuple = tuple()
     ids: tuple[Column]
+    session: AsyncSession
 
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session)
