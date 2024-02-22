@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, TypeVar
 from axabc.db.repo_collector import BaseRepoCollector
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
-from sqlalchemy.orm import decl_base
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.orm import decl_base, sessionmaker
 
 
 if TYPE_CHECKING:
