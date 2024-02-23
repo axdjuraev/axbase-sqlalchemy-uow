@@ -4,9 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engin
 from sqlalchemy.orm import decl_base, sessionmaker
 
 
+from axabc.db import AsyncUOWFactory
+
+
 if TYPE_CHECKING:
     from axsqlalchemy.settings import Settings as DBSettings
-    from axabc.db import AsyncUOWFactory
     
 
 TRepoCollection = TypeVar("TRepoCollection", bound=BaseRepoCollector)
